@@ -1,0 +1,56 @@
+{
+  "company": "033. Stravalla",
+  "electricity_price_country": "SE3",
+  "start_time": "2024-11-01 01:00:00",
+  "end_time": "2025-10-01 23:00:00",
+  "latitude": 57.298902,
+  "tilt": 43.0,
+  "longitude": 12.216678,
+  "pv_price": 0,
+  "possible_power_prices": [
+    0
+  ],
+  "possible_capacity_prices": [
+    400
+  ],
+  "possible_pv_sizes": [
+    1
+  ],
+  "possible_battery_capacity_values": [
+    0
+  ],
+  "possible_max_power_values": [
+    0
+  ],
+  "list_of_year_offsets": [
+    0
+  ],
+  "current_year_offset": 0,
+  "power_contract_cost": 4.0,
+  "power_contract_cost_inject": 0.0,
+  "save_files": true,
+  "plot": false,
+  "efficiency": 0.85,
+  "topefficiency": 0.95,
+  "el_price_adddition": 0.0,
+  "el_price_factor": 1.0,
+  "priceclip_fcrn_CM": 100,
+  "priceclip_fcrd": 10,
+  "priceclip_fcrdU": 10,
+  "priceclip_fcrn_AE": 100,
+  "enable_fcrd_up": true,
+  "enable_fcrd_down": true,
+  "enable_fcrn_CM": true,
+  "enable_fcrn_up_AE": true,
+  "enable_fcrn_down_AE": true,
+  "yearoffset": 0,
+  "dayoffset": 0,
+  "step_length": 1.0,
+  "bidtime": 1.0,
+  "initial_soc": 0.0,
+  "maintenance_loss": 0.01,
+  "dep_time": 3650,
+  "carbon_intensity": 22.875,
+  "results_path": "C:\\Users\\meiek\\Documents\\RIVUS_code\\battery_optimization\\results\\033. Stravalla",
+  "simulation_length": 334
+}
