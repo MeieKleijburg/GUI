@@ -1,0 +1,19 @@
+# Python
+__pycache__/
+*.pyc
+
+# Streamlit
+.streamlit/
+
+# Environments
+.env
+venv/
+.env/
+
+# OS
+.DS_Store
+
+# Large data / results (VERY IMPORTANT)
+results/
+*.csv
+*.xlsx
