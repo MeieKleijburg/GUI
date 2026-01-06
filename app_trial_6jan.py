@@ -251,7 +251,7 @@ st.title(f"Results Explorer {convential_name}")
 
 # --- Sidebar filters (examples; adapt to your columns) ---
 with st.sidebar:
-    st.image(LOGO_PATH, width=200)
+    st.image(str(LOGO_PATH), width=200)
 
     st.markdown("### Filters")
 
