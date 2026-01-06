@@ -10,14 +10,16 @@ import matplotlib.pyplot as plt
 
 # streamlit run c:/Users/meiek/Documents/RIVUS_code/GUI/app_trial.py
 # Config
-RESULTS_ROOT = Path(r"C:\Users\meiek\Documents\RIVUS_code\battery_optimization\results")
+BASE_DIR = Path(__file__).resolve().parent
+RESULTS_ROOT = BASE_DIR / "results"  # (basedir: C:\Users\meiek\Documents\RIVUS_code\GUI)
+
 # Build the two runs (fixed company + dates)
 company_name = "033. Stravalla"
 convential_name = "Stravalla"
 folder0 = "2026-01-05"
 folder1 = "2026-01-06"
 # add more simulation_date_folders as needed
-LOGO_PATH = r"C:\Users\meiek\Documents\RIVUS_code\GUI\rivus-logo.webp"
+LOGO_PATH = BASE_DIR / "rivus-logo.webp"
 
 
 def list_uuids(date_dir: Path):
