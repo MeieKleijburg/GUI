@@ -9,8 +9,6 @@ import matplotlib.pyplot as plt
 
 
 # streamlit run c:/Users/meiek/Documents/RIVUS_code/GUI/app_trial.py
-from report.testreport import replace_placeholders_pptx
-
 # Config
 RESULTS_ROOT = Path(r"C:\Users\meiek\Documents\RIVUS_code\battery_optimization\results")
 # Build the two runs (fixed company + dates)
