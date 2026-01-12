@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 # ----------------------------
 # Config
 # ----------------------------
-BASE_DIR = Path(__file__).resolve().parent.parent
+BASE_DIR = Path(__file__).resolve().parent
 
 company_name = "039. Godestadsvagen"
 convential_name = "Gödestadsvägen"
