@@ -17,7 +17,7 @@ folder = "2026-01-12"
 run_id = "5_7f53f1fe-d366-47eb-882a-fbd0c66c0296"
 
 RESULTS_PATH = (
-    BASE_DIR / "battery_optimization" / "results" / company_name / folder / run_id / "Results_All.xlsx"
+    BASE_DIR / "results" / company_name / folder / run_id / "Results_All.xlsx"
 )
 LOGO_PATH = BASE_DIR / "GUI" / "rivus-logo.webp"
 API_PV = False # whether the API PV scenarios were run
