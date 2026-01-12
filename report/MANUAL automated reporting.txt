@@ -1,0 +1,168 @@
+AUTOMATED REPORTING SCRIPT – USER MANUAL
+Purpose
+
+This script generates a customer-ready PowerPoint report from a completed battery optimization run.
+It reads simulation results from an Excel file, selects predefined cases, fills a PowerPoint template, and exports a finished report.
+
+Source: automated_reporting.py 
+
+automated_reporting
+
+What the script does (in short)
+
+Loads Results_All.xlsx from a specific optimization run
+
+Selects specific rows corresponding to 2024/2025 cases
+
+Computes averages and KPIs
+
+Replaces {{placeholders}} in a PowerPoint template
+
+Saves a finished .pptx report
+
+Folder structure requirement
+
+The script assumes the following structure:
+
+GUI/
+├─ report/
+│ └─ automated_reporting.py
+├─ templates/
+│ ├─ template_ownPVss.pptx
+│ ├─ template_ownPV.pptx
+│ ├─ template_APIPVss.pptx
+│ └─ template_APIPV.pptx
+
+battery_optimization/
+└─ results/
+└─ <company>/
+└─ <date>/
+└─ <run_id>/
+└─ Results_All.xlsx
+
+If this structure is broken, the script will fail.
+
+Step 1: Configure the run
+
+Edit the following variables at the top of the script:
+
+company
+
+Folder name under results
+
+Example: "039. Godestadsvagen"
+
+correspondance_name
+
+Human-readable customer name
+
+Used in the report text and output filename
+
+Example: "Gödestadsvägen"
+
+date_folder
+
+Simulation date folder
+
+Example: "2026-01-12"
+
+run_id
+
+UUID folder of the optimization run
+
+Example: "0_d8e6e2be-fe71-4da3-9e08-18f8eea397de"
+
+These values must point to an existing Results_All.xlsx file.
+
+Step 2: Choose report template
+
+Select which PowerPoint template to use:
+
+template_key options:
+
+ownPVss → Customer-owned PV, self-sufficiency focus
+
+ownPV → Customer-owned PV, cost focus
+
+APIPVss → API PV, self-sufficiency focus
+
+APIPV → API PV, cost focus
+
+Only one template is used per report.
+
+Step 3: Select result rows (CRITICAL)
+
+Rows are selected manually using 0-based indexing.
+
+Example:
+row_selected_case_2024
+row_selected_case_2024_ss
+row_selected_case_2025
+row_selected_case_2025_ss
+
+These refer to rows in Results_All.xlsx.
+
+Important rules:
+
+Indexing starts at 0 (first data row = 0)
+
+You must open Results_All.xlsx and visually confirm rows
+
+Wrong indices = wrong numbers in the report
+
+Baseline rows are defined but currently not used automatically.
+
+Step 4: Optional customer-specific explanation text
+
+Additional explanatory text can be injected per customer.
+
+The script matches correspondance_name to a predefined text block.
+
+If no match is found, the field is left empty.
+
+This text typically appears in a “Data & assumptions” slide.
+
+Step 5: Run the script
+
+From the GUI/report folder (or with correct Python paths):
+
+python automated_reporting.py
+
+No command-line arguments are required.
+
+Output
+
+The generated report is saved as:
+
+GUI/report/output_<correspondance_name>.pptx
+
+Example:
+output_Gödestadsvägen.pptx
+
+Existing files with the same name will be overwritten.
+
+How placeholders work (for template editing)
+
+Templates use placeholders like:
+
+{{c_pv_1}}
+{{pb_t_3}}
+{{ssr_t_4}}
+
+Suffix meaning:
+_1 → Case 1 (2024, non self-sufficient)
+_2 → Case 2 (2024, self-sufficient)
+_3 → Case 3 (2025, non self-sufficient)
+_4 → Case 4 (2025, self-sufficient)
+
+Shared values (e.g. PV size, region) have no suffix.
+
+Placeholders can be used in:
+
+Text boxes
+
+Tables
+
+Slide layouts
+
+Slide masters

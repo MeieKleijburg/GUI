@@ -10,46 +10,27 @@ import matplotlib.pyplot as plt
 
 # streamlit run c:/Users/meiek/Documents/RIVUS_code/GUI/app_trial.py
 # Config
-BASE_DIR = Path(__file__).resolve().parent
-RESULTS_ROOT = BASE_DIR / "results"  # (basedir: C:\Users\meiek\Documents\RIVUS_code\GUI)
+BASE_DIR = Path(__file__).resolve().parent.parent
 
 # Build the two runs (fixed company + dates)
-company_name = "033. Stravalla"
-convential_name = "Stravalla"
-folder0 = "2026-01-05"
-folder1 = "2026-01-06"
+company_name =  "039. Godestadsvagen"
+convential_name = "Gödestadsvägen"
+folder = "2026-01-12"
+# fallback: if only one folder is needed, set folder1 equal to folder0
+run_id = "0_d8e6e2be-fe71-4da3-9e08-18f8eea397de"
+
+RESULTS_PATH = BASE_DIR / "battery_optimization" / "results" / company_name / folder / run_id / "Results_All.xlsx"
+
 # add more simulation_date_folders as needed
-LOGO_PATH = BASE_DIR / "rivus-logo.webp"
+LOGO_PATH = BASE_DIR / "GUI" / "rivus-logo.webp"
 
+# todo: couple with automated_reporting.py
+template_key = "ownPVss"  # choose from: ownPVss, ownPV, APIPVss, APIPV          ,ss = self-sufficient 
+row_selected_case_2024 = 2  # not self-sufficient, 2024 (_1)
+row_selected_case_2024_ss = 0  # self-sufficient, 2024 (_2)
+row_selected_case_2025 = 6  # not self-sufficient, 2025 (_3)
+row_selected_case_2025_ss = 4  # self-sufficient, 2025 (_4)
 
-def list_uuids(date_dir: Path):
-    return sorted([p.name for p in date_dir.iterdir() if p.is_dir()])
-
-def read_results_excel(uuid_dir: Path) -> pd.DataFrame:
-    """
-    Reads the Results file from a UUID directory.
-       """
-
-    # match case-insensitively
-    candidates = list(uuid_dir.glob("Results.*")) + list(uuid_dir.glob("results.*"))
-
-    if not candidates:
-        raise FileNotFoundError(f"No Results file found in {uuid_dir}")
-
-    # Prefer Excel over CSV if both exist
-    excel_files = [p for p in candidates if p.suffix.lower() in (".xlsx", ".xls")]
-    csv_files = [p for p in candidates if p.suffix.lower() == ".csv"]
-
-    if excel_files:
-        f = excel_files[0]
-        df = pd.read_excel(f)
-    elif csv_files:
-        f = csv_files[0]
-        df = pd.read_csv(f)
-    else:
-        raise ValueError(f"Unsupported Results file type in {uuid_dir}")
-
-    return df
 
 def to_percent(x) -> float:
     """Convert x to a percentage in [0, 100]. Accepts 0-1 or 0-100. Handles NaN."""
@@ -185,45 +166,44 @@ def scenario_cost_barplot(
 
 
 @st.cache_data(show_spinner=False)
-def build_catalog(company: str, date: str) -> pd.DataFrame:
-    company_dir = RESULTS_ROOT / company
-    date_dir = company_dir / date
-
-    rows = []
-    for uuid in list_uuids(date_dir):
-        uuid_dir = date_dir / uuid
-        plots_dir = uuid_dir / "plots"
-        plots_dir_exists = plots_dir.exists()
-
-
-        try:
-            df = read_results_excel(uuid_dir)
-        except Exception as e:
-            continue
-
-        df = df.reset_index(drop=True)
-        df["row_index"] = df.index
-        df["company"] = company
-        df["date"] = date
-        df["uuid"] = uuid
-
-        # plot file mapping (plots are OPTIONAL)
-        if plots_dir_exists:
-            df["plot_path"] = df["row_index"].apply(
-                lambda i: str(plots_dir / f"plot{i}.html")
-            )
-            df["plot_exists"] = df["plot_path"].apply(lambda p: Path(p).exists())
-        else:
-            df["plot_path"] = None
-            df["plot_exists"] = False
-
-        rows.append(df)
-
-    if not rows:
-        return pd.DataFrame()
-
-    catalog = pd.concat(rows, ignore_index=True)
-    return catalog
+def build_catalog(results_path: Path = None, company: str = None, date: str = None, uuid: str = None) -> pd.DataFrame:
+    """
+    Load Results Excel file and add metadata columns.
+    If results_path is provided, use it; otherwise use RESULTS_PATH global.
+    """
+    if results_path is None:
+        results_path = RESULTS_PATH
+    if company is None:
+        company = company_name
+    if date is None:
+        date = folder
+    if uuid is None:
+        uuid = run_id
+    
+    # Read the Excel file
+    df = pd.read_excel(results_path)
+    df = df.reset_index(drop=True)
+    
+    # Add metadata columns
+    df["row_index"] = df.index
+    df["company"] = company
+    df["date"] = date
+    df["uuid"] = uuid
+    
+    # Check for plots directory (optional)
+    plots_dir = results_path.parent / "plots"
+    plots_dir_exists = plots_dir.exists()
+    
+    if plots_dir_exists:
+        df["plot_path"] = df["row_index"].apply(
+            lambda i: str(plots_dir / f"plot{i}.html")
+        )
+        df["plot_exists"] = df["plot_path"].apply(lambda p: Path(p).exists())
+    else:
+        df["plot_path"] = None
+        df["plot_exists"] = False
+    
+    return df
 
 def html_plot(path: str | None, height=700):
     if not path:
@@ -240,11 +220,76 @@ def html_plot(path: str | None, height=700):
 
 # --- Streamlit App ---
 
-catalog0 = build_catalog(company_name, folder0)
-catalog1 = build_catalog(company_name, folder1)
+df_results = build_catalog()
 
-catalog = pd.concat([catalog0, catalog1], ignore_index=True)
+print("Catalog (df_results):")
+print(df_results)
 
+ss_mode = st.selectbox(
+    "Self-Sufficiency",
+    ["Auto", "On", "Off"],
+    index=0,
+    help="Auto infers On/Off from import/export. On/Off forces the value."
+)
+
+def _find_col(df, keywords):
+    for col in df.columns:
+        lname = col.lower()
+        if any(k in lname for k in keywords):
+            return col
+    return None
+
+def infer_self_sufficiency(df_results: pd.DataFrame) -> pd.DataFrame:
+    df = df_results.copy()
+    ss_col = None
+
+    if "Self-Sufficiency" in df.columns:
+        pattern = re.compile(r"import\s*([0-9.+\-eE]+).*export\s*([0-9.+\-eE]+)", re.IGNORECASE)
+
+        def parse_ss(val):
+            if not isinstance(val, str):
+                return None
+            m = pattern.search(val)
+            if not m:
+                return None
+            try:
+                imp = float(m.group(1))
+                exp = float(m.group(2))
+                return "Off" if (abs(imp) < 1e-9 and abs(exp) < 1e-9) else "On"
+            except Exception:
+                return None
+
+        parsed = df["Self-Sufficiency"].apply(parse_ss)
+        if parsed.notna().any():
+            df["Self-Sufficiency"] = parsed.fillna(df["Self-Sufficiency"].astype(str))
+            ss_col = "Self-Sufficiency"
+
+    if ss_col is None:
+        imp_col = _find_col(df, ["import"])
+        exp_col = _find_col(df, ["export"])
+        if imp_col and exp_col:
+            df[imp_col] = pd.to_numeric(df[imp_col], errors="coerce").fillna(0.0)
+            df[exp_col] = pd.to_numeric(df[exp_col], errors="coerce").fillna(0.0)
+
+            def ss_from_cols(row):
+                imp = float(row[imp_col]) if pd.notna(row[imp_col]) else 0.0
+                exp = float(row[exp_col]) if pd.notna(row[exp_col]) else 0.0
+                return "Off" if (abs(imp) < 1e-9 and abs(exp) < 1e-9) else "On"
+
+            df["Self-Sufficiency"] = df.apply(ss_from_cols, axis=1)
+        else:
+            if "Self-Sufficiency" not in df.columns:
+                df["Self-Sufficiency"] = "On"
+
+    return df
+
+# --- apply user's choice ---
+if ss_mode == "Auto":
+    df_results = infer_self_sufficiency(df_results)
+else:
+    # Force a constant value for all rows
+    df_results = df_results.copy()
+    df_results["Self-Sufficiency"] = ss_mode
 
 st.set_page_config(layout="wide")
 st.title(f"Results Explorer {convential_name}")
@@ -255,77 +300,44 @@ with st.sidebar:
 
     st.markdown("### Filters")
 
-    if "FCR" in catalog.columns:
-        fcr_vals = sorted(catalog["FCR"].dropna().unique().tolist())
-        fcr_sel = st.multiselect("Ancillary Markets", fcr_vals, default=fcr_vals)
-        catalog = catalog[catalog["FCR"].isin(fcr_sel)]
+    ### ADD non fcr cases if NEEDED (sometimes not presented to customers)
+    # if "FCR" in df_results.columns:
+    #     fcr_vals = sorted(df_results["FCR"].dropna().unique().tolist())
+    #     fcr_sel = st.multiselect("Ancillary Markets", fcr_vals, default=fcr_vals)
+    #     df_results = df_results[df_results["FCR"].isin(fcr_sel)]
 
-    if "Self-Sufficiency" in catalog.columns:
-        ss = sorted(catalog["Self-Sufficiency"].dropna().unique().tolist())
+    if "Self-Sufficiency" in df_results.columns:
+        ss = sorted(df_results["Self-Sufficiency"].dropna().unique().tolist())
         ss_sel = st.multiselect("Self-Sufficiency", ss, default=ss)
-        catalog = catalog[catalog["Self-Sufficiency"].isin(ss_sel)]
+        df_results = df_results[df_results["Self-Sufficiency"].isin(ss_sel)]
 
 # Stop early if filters remove everything
-if catalog.empty:
+if df_results.empty:
     st.warning("No rows match the current filters.")
     st.stop()
 
 # Ensure numeric types (optional but helps if strings sneak in)
 for c in ["Battery Capacity", "Max Power"]:
-    if c in catalog.columns:
-        catalog[c] = pd.to_numeric(catalog[c], errors="coerce")
+    if c in df_results.columns:
+        df_results[c] = pd.to_numeric(df_results[c], errors="coerce")
 
 st.markdown("### Select configuration")
 
-col1, col2 = st.columns(2)
+# Manual row selection (default): Year + Battery option map to pre-set row indices
+year = st.sidebar.selectbox("Year", ["2024", "2025"], index=0)
+battery_option = st.sidebar.radio("Battery option", ["Baseline", "Battery"], index=0)
 
-with col1:
-    if "Battery Capacity" not in catalog.columns:
-        st.error("Missing column: Battery Capacity")
-        st.stop()
-    cap_options = sorted(catalog["Battery Capacity"].dropna().unique().tolist())
-    if not cap_options:
-        st.warning("No Battery Capacity values available after filters.")
-        st.stop()
-    cap_sel = st.selectbox("Battery Capacity", cap_options)
+# Map to pre-set row indices
+if year == "2024":
+    selected_row = row_selected_case_2024 if battery_option == "Baseline" else row_selected_case_2024_ss
+else:
+    selected_row = row_selected_case_2025 if battery_option == "Baseline" else row_selected_case_2025_ss
 
-with col2:
-    if "Max Power" not in catalog.columns:
-        st.error("Missing column: Max Power")
-        st.stop()
-    # Max Power options depend on chosen capacity (nice UX)
-    tmp = catalog[catalog["Battery Capacity"] == cap_sel]
-    pmax_options = sorted(tmp["Max Power"].dropna().unique().tolist())
-    if not pmax_options:
-        st.warning("No Max Power values available for this Battery Capacity.")
-        st.stop()
-    pmax_sel = st.selectbox("Max Power", pmax_options)
-
-remaining = catalog[
-    (catalog["Battery Capacity"] == cap_sel) &
-    (catalog["Max Power"] == pmax_sel)
-].copy()
-
-if remaining.empty:
-    st.warning("No rows match Battery Capacity + Max Power (after left filters).")
+if selected_row < 0 or selected_row >= len(df_results):
+    st.error(f"Selected row {selected_row} out of range (0..{len(df_results)-1}).")
     st.stop()
 
-# Make display stable/predictable
-sort_keys = [c for c in ["date", "uuid", "row_index"] if c in remaining.columns]
-if sort_keys:
-    remaining = remaining.sort_values(sort_keys, kind="mergesort")
-
-st.caption(f"{len(remaining)} matching result(s).")
-
-idx = st.number_input(
-    "Result number",
-    min_value=1,
-    max_value=len(remaining),
-    value=1,
-    step=1,
-    key="result_index_selector",
-)
-picked = remaining.iloc[int(idx) - 1]
+picked = df_results.iloc[selected_row]
 
 
 colA, colB = st.columns([2, 1])
@@ -368,8 +380,9 @@ with colA:
     html_plot(picked.get("plot_path", None), height=720)
 
 
-with colB:
-    st.markdown("### Row details")
-    details = picked.to_dict()
-    details.pop("plot_path", None)
+# Details moved into a collapsed expander further down (closed by default)
+details = picked.to_dict()
+details.pop("plot_path", None)
+
+with st.expander("Details", expanded=False):
     st.json(details)
