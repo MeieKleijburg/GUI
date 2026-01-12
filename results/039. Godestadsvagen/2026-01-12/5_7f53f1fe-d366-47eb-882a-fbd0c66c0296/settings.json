@@ -1,0 +1,63 @@
+{
+  "data": {
+    "save_files": true,
+    "plot": true,
+    "show_plots": false,
+    "company": "039. Godestadsvagen",
+    "electricity_price_country": "SE3",
+    "latitude": 57.1145202,
+    "tilt": 43.0,
+    "longitude": 12.2671123,
+    "start_time": "2024-01-01T00:00:00Z",
+    "end_time": "2024-12-31T23:00:00Z",
+    "yearoffset": 0,
+    "dayoffset": 0,
+    "list_of_year_offsets": [
+      0,
+      1
+    ],
+    "current_year_offset": 1,
+    "step_length": 1.0,
+    "results_path": "results\\039. Godestadsvagen"
+  },
+  "optimization": {
+    "pv_price": 0,
+    "power_contract_cost": 4.0,
+    "efficiency": 0.85,
+    "topefficiency": 0.95,
+    "el_price_adddition": 0.0,
+    "el_price_factor": 1.0,
+    "enable_all": false,
+    "enable_fcrd_up": false,
+    "enable_fcrd_down": false,
+    "enable_fcrn_CM": false,
+    "enable_fcrn_up_AE": false,
+    "enable_fcrn_down_AE": false,
+    "initial_soc": 0.0,
+    "possible_power_prices": [
+      0
+    ],
+    "possible_capacity_prices": [
+      400
+    ],
+    "possible_pv_sizes": [
+      1
+    ],
+    "possible_battery_capacity_values": [
+      0,
+      150
+    ],
+    "possible_max_power_values": [
+      25
+    ],
+    "self_sufficiency_cost_import": 5000.0,
+    "self_sufficiency_cost_export": 0.0,
+    "possible_self_sufficiency_cost_import": [
+      0.0,
+      5000.0
+    ],
+    "possible_self_sufficiency_cost_export": [
+      0.0
+    ]
+  }
+}
