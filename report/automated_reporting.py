@@ -152,7 +152,9 @@ def build_case_context(row, correspondance_name: str, additional_information: di
         "c_k_pv": round(row["Electricity cost/kWh with PV"], 3),
         "c_k_pvb": round(row["Electricity cost/kWh with PV and battery"], 4),
 
-        "drop_percent": round(row["€ % drop/kWh"], 1),
+        "d_p": round(row["€ % drop/kWh"], 1),  # drop in €/kWh
+        "d_pv": round((1-row["Electricity cost/kWh with PV and battery"]/row["Electricity cost/kWh with PV"])*100, 1),  # drop in €/kWh for own PV
+
 
         # savings
         "s_pv": round(row["Savings from PV during period"] / row["length of simulation"], 0),
@@ -181,6 +183,7 @@ def build_case_context(row, correspondance_name: str, additional_information: di
         "bat_power_price": round(row["Battery Power Price (EUR/kWh)"], 0),
 
         "fcr_rev": round(row["Total FCR revenue (EUR)"]/row["length of simulation"], 0),
+        
     }
 
 def suffix_keys(d: dict, suffix: str) -> dict:
@@ -199,9 +202,9 @@ if __name__ == "__main__":
     
     pps = round(
         sum(df_results.iloc[i]["peak% of saving"] for i in case_indices) / len(case_indices), 1 )
-    parb = round(
+    pamr = round(
         sum(df_results.iloc[i]["FCR% of saving"] for i in case_indices) / len(case_indices),  1)
-    pamr = round(100 - pps - parb, 1)
+    parb = round(100 - pps - pamr, 1)
 
     # Use the first selected case as the "base" row for shared values
     base_row = df_results.iloc[case_indices[0]]
@@ -227,7 +230,9 @@ if __name__ == "__main__":
         "PAMR": pamr,
         "ss_incr2":  round((df_results.iloc[row_selected_case_2024_ss]["Self-sufficiency (SSR %)"])/df_results.iloc[row_selected_case_2024]["Self-sufficiency (SSR only PV %)"],1),
         "ss_incr":  round((df_results.iloc[row_selected_case_2025_ss]["Self-sufficiency (SSR %)"])/df_results.iloc[row_selected_case_2025]["Self-sufficiency (SSR only PV %)"],1),
-    }   
+
+    }
+
 
     context_all = base_context.copy()
 
