@@ -84,12 +84,12 @@ st.markdown(
       section[data-testid="stSidebar"] h1, 
       section[data-testid="stSidebar"] h2, 
       section[data-testid="stSidebar"] h3 {
-        color: var(--rivus-green);
+        color: black;
       }
 
       /* Main headers */
       h1, h2, h3 {
-        color: var(--rivus-green);
+        color: black ;
       }
 
       /* Metric label + value */
@@ -362,7 +362,7 @@ with st.sidebar:
 
     year = st.selectbox("Year", ["2024", "2025"], index=0)
 
-    battery = st.radio(
+    battery = st.radio(             # todo in future make toggle for the various battery sizes available
         "Battery",
         ["No battery", "Battery"],
         index=0,
@@ -406,14 +406,22 @@ render_header(year, battery, self_sufficiency_focus, picked)
 # Main layout
 
 if battery == "Battery":
-        st.markdown("### Key metrics")
-        payback_bat = picked.get("Payback Time battery", None)
-        if payback_bat is None or (isinstance(payback_bat, float) and math.isnan(payback_bat)):
-            st.metric("Payback time (battery)", "—")
-        else:
-            st.metric("Payback time (battery)", f"{float(payback_bat):.1f} years")
+        st.markdown("### Key metrics")            
+        col1, col2 = st.columns([3, 2])
+        with col1:
+            payback_bat = picked.get("Payback Time battery", None)
+            if payback_bat is None or (isinstance(payback_bat, float) and math.isnan(payback_bat)):
+                st.metric("Payback time (Battery)", "—")
+            else:
+                st.metric("Payback time (Battery)", f"{float(payback_bat):.1f} years")
+        with col2:
+            selfsuf = picked.get("Self-sufficiency (SSR %)", None)
+            if selfsuf is None or (isinstance(selfsuf, float) and math.isnan(selfsuf)):
+                st.metric("Self-sufficiency (% of demand met by PV)", "—")
+            else:
+                st.metric("Self-sufficiency (% of demand met by PV)", f"{float(selfsuf):.1f}%")
 
-        c1, c2 = st.columns([3, 2], vertical_alignment="top")
+        c1, c2 = col1, col2 = st.columns([3, 2])
 
         with c1:
             if API_PV:
@@ -445,6 +453,11 @@ if battery == "Battery":
     st.markdown("### Optimization Plots")
 else:
     st.markdown("### Demand and Solar Plots")
+    selfsuf = picked.get("Self-sufficiency (SSR %)", None)
+    if selfsuf is None or (isinstance(selfsuf, float) and math.isnan(selfsuf)):
+                st.metric("Self-sufficiency (% of demand met by PV)", "—")
+    else:
+                st.metric("Self-sufficiency (% of demand met by PV)", f"{float(selfsuf):.1f}%")
 
 html_plot(picked.get("plot_path", None), height=720)
 
