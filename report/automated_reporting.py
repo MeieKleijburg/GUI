@@ -10,17 +10,15 @@ GUI_DIR = BASE_DIR.parent  # GUI folder
 RESULTS_ROOT = GUI_DIR.parent / "battery_optimization" / "results"
 TEMPLATE_FOLDER = GUI_DIR / "templates" 
 
+company_name = "041. Siriusgatan"
+convential_name = "Siriusgatan"
+folder = "2026-01-19"
+run_id = "0_4a974833-b5b9-4cfc-a48b-756f49041f9e"
 
-company = "039. Godestadsvagen"
-correspondance_name = "Gödestadsvägen"
-date_folder = "2026-01-12"
-run_id = "5_7f53f1fe-d366-47eb-882a-fbd0c66c0296"
-
-RESULTS_PATH = RESULTS_ROOT / company / date_folder / run_id / "Results_All.xlsx"
+RESULTS_PATH = RESULTS_ROOT / company_name / folder / run_id / "Results_All.xlsx"
 
 # select template choose what you want to show to customer by eying the results excel and selecting the appropriate template
-template_key = "ownPVss"  # choose from: ownPVss, ownPV, APIPVss, APIPV          ,ss = self-sufficient 
-
+template_key = "ownPVfcr"  # choose from: ownPVss, ownPV, APIPVss, APIPV          ,ss = self-sufficient 
 
 df_results = pd.read_excel(RESULTS_PATH)
 print(df_results.head(19))
@@ -30,18 +28,23 @@ print(df_results.head(19))
 
 row_selected_case_2024 = 1  # not self-sufficient, 2024 (_1)
 row_selected_case_2024_ss = 5  # self-sufficient, 2024 (_2)
+row_selected_cases_2024_fcroff = 3  # FCR off, 2024 (_5)
+
 row_selected_case_2025 = 9  # not self-sufficient, 2025 (_3)
 row_selected_case_2025_ss = 13  # self-sufficient, 2025 (_4)
+row_selected_cases_2025_fcroff = 11  # FCR off, 2025 (_6)
 
 templates = {
             "ownPVss": TEMPLATE_FOLDER / "template_ownPVss.pptx",
             "ownPV": TEMPLATE_FOLDER / "template_ownPV.pptx",
+            "ownPVfcr": TEMPLATE_FOLDER / "template_ownPVfcr.pptx",
             "APIPVss": TEMPLATE_FOLDER / "template_APIPVss.pptx",
             "APIPV": TEMPLATE_FOLDER / "template_APIPV.pptx",
+        
 }
 
 
-# add in format: additional_information_<correspondance_name>
+# add in format: additional_information_<convential_name>
 additional_information = {
     "Poseidon": "Net hourly demand data was provided by Poseidon together with a PV specifications sheet and the PV area. "
     "Based on this information, we estimated 205 kWp of installed solar power. Furthermore, gross hourly demand "
@@ -50,6 +53,12 @@ additional_information = {
     "electricity demand met by PV generation).",
 
     "Herrestad": "Information",
+
+    "Siriusgatan": "Net hourly demand data was provided together with hourly PV production for part of 2024 and 2025. "
+    "Based on this information, gross hourly demand data was calculated with the help of hourly means. Moreover, "
+    "the data was provided for four properties, Siriusgatan 72-76, 66-70, 60-64 and 54-58. The simulation is based on a"
+    "aggregation of these four properties to reflect the addition of one shared battery.",
+
 
     "Gödestadsvägen": "Net hourly demand data was provided together with hourly PV production for 2024 and 2025. "
     "Based on this information, gross hourly demand data was calculated with the help of hourly means. "
@@ -134,7 +143,7 @@ def replace_placeholders_pptx(template_pptx, output_pptx, context):
 
     prs.save(output_pptx)
 
-def build_case_context(row, correspondance_name: str, additional_information: dict) -> dict:
+def build_case_context(row, convential_name: str, additional_information: dict) -> dict:
     return {
         "data_year": readable_demand_timestamps_year(row["end_time"]),
         "demand_data_range": readable_demand_timestamps(row["demand_data_used:"]),
@@ -197,6 +206,8 @@ if __name__ == "__main__":
         row_selected_case_2024_ss,
         row_selected_case_2025,
         row_selected_case_2025_ss,
+        row_selected_cases_2024_fcroff,
+        row_selected_cases_2025_fcroff,
     ]
     # Metrics
     
@@ -210,8 +221,8 @@ if __name__ == "__main__":
     base_row = df_results.iloc[case_indices[0]]
 
     base_context = {
-        "additional_information": additional_information.get(correspondance_name, ""),
-        "cor_na": correspondance_name,
+        "additional_information": additional_information.get(convential_name, ""),
+        "cor_na": convential_name,
         "region": base_row["Region"],
         "data_year": readable_demand_timestamps_year(base_row["end_time"]),
         "demand_data_range": readable_demand_timestamps(base_row["demand_data_used:"]),
@@ -233,17 +244,16 @@ if __name__ == "__main__":
 
     }
 
-
     context_all = base_context.copy()
 
     for i, idx in enumerate(case_indices, start=1):
         row = df_results.iloc[idx]
-        case_ctx = build_case_context(row, correspondance_name, additional_information)
+        case_ctx = build_case_context(row, convential_name, additional_information)
         context_all.update(suffix_keys(case_ctx, f"_{i}"))
 
 
     replace_placeholders_pptx(
         template_pptx = templates[template_key],
-        output_pptx=fr"C:\Users\meiek\Documents\RIVUS_code\GUI\report\output_{correspondance_name}.pptx",
+        output_pptx=fr"C:\Users\meiek\Documents\RIVUS_code\GUI\report\output_{convential_name}.pptx",
         context=context_all,
     )
