@@ -499,9 +499,3 @@ else:
 
 html_plot(picked.get("plot_path", None), height=720)
 
-# Details
-details = dict(picked)
-details.pop("plot_path", None)
-
-with st.expander("Details", expanded=False):
-    st.json(details)
