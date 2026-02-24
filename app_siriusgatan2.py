@@ -19,7 +19,7 @@ run_id = "1_b315b306-8344-488b-b690-4b61bf6faaee"
 RESULTS_PATH = (
     BASE_DIR / "results" / company_name / folder / run_id / "Results_All.xlsx"
 )
-LOGO_PATH = BASE_DIR / "GUI" / "rivus-logo.webp"
+LOGO_PATH = BASE_DIR / "rivus-logo.webp"
 API_PV = False # whether the API PV scenarios were run
 NoneFCR_visible = True   # whether to show the Ancillary Markets toggle (if False, it's always ON and hidden from user since your 6 scenarios only have Ancillary on for battery cases)
 
@@ -511,4 +511,5 @@ details.pop("plot_path", None)
 
 with st.expander("Details", expanded=False):
     st.json(details)
+
 
