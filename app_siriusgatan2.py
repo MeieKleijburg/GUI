@@ -21,7 +21,7 @@ RESULTS_PATH = (
 )
 LOGO_PATH = BASE_DIR / "rivus-logo.webp"
 API_PV = False # whether the API PV scenarios were run
-NoneFCR_visible = True   # whether to show the Ancillary Markets toggle (if False, it's always ON and hidden from user since your 6 scenarios only have Ancillary on for battery cases)
+NoneFCR_visible = False   # whether to show the Ancillary Markets toggle (if False, it's always ON and hidden from user since your 6 scenarios only have Ancillary on for battery cases)
 
 # Canonical row_index values from the Excel (6 scenarios total)
 # 2024: baseline (no battery), battery, battery + self-sufficiency focus
@@ -511,5 +511,6 @@ details.pop("plot_path", None)
 
 with st.expander("Details", expanded=False):
     st.json(details)
+
 
 
